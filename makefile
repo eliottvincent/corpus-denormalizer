@@ -2,9 +2,9 @@
 # @Date:   2019-01-08T14:26:40+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-08T14:51:27+01:00
+# @Last modified time: 2019-01-08T15:10:36+01:00
 # @License: MIT
-# @Copyright: © 2018 Productmates. All rights reserved.
+# @Copyright: © 2019 ENSSAT. All rights reserved.
 
 build:
 	@docker build \

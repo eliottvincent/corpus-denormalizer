@@ -1,7 +1,7 @@
 # Version 0.0.1
 FROM ubuntu:14.04
 
-MAINTAINER Standa Kurik "standa.kurik@gmail.com"
+MAINTAINER Eliott Vincent "evincent@enssat.fr"
 
 # base tools
 RUN apt-get update

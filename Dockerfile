@@ -62,13 +62,10 @@ RUN wget http://www.statmt.org/moses/download/sample-models.tgz
 RUN tar xzf sample-models.tgz
 
 # download samples
-WORKDIR /home/moses
-RUN mkdir corpus
+RUN mkdir /home/moses/corpus
 WORKDIR /home/moses/corpus
-RUN pwd
 RUN wget http://www.statmt.org/wmt13/training-parallel-nc-v8.tgz
 RUN tar zxvf training-parallel-nc-v8.tgz
-RUN ls
 
 # copy and execute our workflow
 COPY moses.sh /home/moses/moses.sh

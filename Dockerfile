@@ -22,7 +22,6 @@ RUN apt-get install -y \
     libboost-all-dev \
     liblzma-dev \
     libsoap-lite-perl \
-    python-dev \
     graphviz \
     imagemagick \
     make \

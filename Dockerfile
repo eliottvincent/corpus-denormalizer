@@ -55,9 +55,26 @@ WORKDIR /home/moses
 RUN git clone https://github.com/moses-smt/mosesdecoder.git
 WORKDIR /home/moses/mosesdecoder
 RUN ./bjam --with-boost=/home/moses/boost_1_64_0 --with-cmph=/usr/local/cmph -j4
+
+# base samples (may be safe to remove)
 WORKDIR /home/moses
 RUN wget http://www.statmt.org/moses/download/sample-models.tgz
 RUN tar xzf sample-models.tgz
 
-CMD tail -f /dev/null
-# ENTRYPOINT ["python", "moses.py"]
+# download samples
+WORKDIR /home/moses
+RUN mkdir corpus
+WORKDIR /home/moses/corpus
+RUN pwd
+RUN wget http://www.statmt.org/wmt13/training-parallel-nc-v8.tgz
+RUN tar zxvf training-parallel-nc-v8.tgz
+RUN ls
+
+# copy and execute our workflow
+COPY moses.sh /home/moses/moses.sh
+RUN chmod +x /home/moses/moses.sh
+
+CMD /home/moses/moses.sh
+
+# OLD method to keep running the container
+# CMD tail -f /dev/null

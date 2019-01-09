@@ -1,7 +1,7 @@
 # Version 0.0.1
 FROM ubuntu:14.04
 
-MAINTAINER Eliott Vincent "evincent@enssat.fr"
+MAINTAINER Standa Kurik "standa.kurik@gmail.com"
 
 # base tools
 RUN apt-get update
@@ -56,22 +56,31 @@ RUN git clone https://github.com/moses-smt/mosesdecoder.git
 WORKDIR /home/moses/mosesdecoder
 RUN ./bjam --with-boost=/home/moses/boost_1_64_0 --with-cmph=/usr/local/cmph -j4
 
-# base samples (may be safe to remove)
+# Install GIZA
 WORKDIR /home/moses
-RUN wget http://www.statmt.org/moses/download/sample-models.tgz
-RUN tar xzf sample-models.tgz
+RUN git clone https://github.com/moses-smt/giza-pp.git
+WORKDIR /home/moses/giza-pp
+RUN make
+RUN mkdir /home/moses/mosesdecoder/tools
+RUN cp /home/moses/giza-pp/GIZA++-v2/GIZA++ /home/moses/giza-pp/GIZA++-v2/snt2cooc.out \
+   /home/moses/giza-pp/mkcls-v2/mkcls /home/moses/mosesdecoder/tools
 
-# download samples
-RUN mkdir /home/moses/corpus
-WORKDIR /home/moses/corpus
-RUN wget http://www.statmt.org/wmt13/training-parallel-nc-v8.tgz
-RUN tar zxvf training-parallel-nc-v8.tgz
+# prepare folders
+RUN mkdir /home/corpus
+RUN mkdir /home/lm
+RUN mkdir /home/working
+
+WORKDIR /home/corpus
+# RUN wget http://www.statmt.org/wmt13/training-parallel-nc-v8.tgz
+# RUN tar zxvf training-parallel-nc-v8.tgz
+COPY europarl-v7-fr-10000-normdenorm.tar.gz .
+RUN tar zxvf europarl-v7-fr-10000-normdenorm.tar.gz
 
 # copy and execute our workflow
-COPY moses.sh /home/moses/moses.sh
-RUN chmod +x /home/moses/moses.sh
-
-CMD /home/moses/moses.sh
+WORKDIR /home
+COPY training.sh /home/training.sh
+RUN chmod a+x /home/training.sh
+ENTRYPOINT ["/bin/bash", "-c", "/home/training.sh"]
 
 # OLD method to keep running the container
 # CMD tail -f /dev/null

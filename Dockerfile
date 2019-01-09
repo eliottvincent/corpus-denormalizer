@@ -73,8 +73,8 @@ RUN mkdir /home/working
 WORKDIR /home/corpus
 # RUN wget http://www.statmt.org/wmt13/training-parallel-nc-v8.tgz
 # RUN tar zxvf training-parallel-nc-v8.tgz
-COPY europarl-v7-fr-10000-normdenorm.tar.gz .
-RUN tar zxvf europarl-v7-fr-10000-normdenorm.tar.gz
+COPY europarl-v7-fr-normdenorm.tar.gz .
+RUN tar zxvf europarl-v7-fr-normdenorm.tar.gz
 
 # copy and execute our workflow
 WORKDIR /home

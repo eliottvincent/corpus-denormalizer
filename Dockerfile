@@ -57,6 +57,7 @@ WORKDIR /home/moses/mosesdecoder
 RUN ./bjam --with-boost=/home/moses/boost_1_64_0 --with-cmph=/usr/local/cmph -j4
 
 # Install GIZA
+#
 WORKDIR /home/moses
 RUN git clone https://github.com/moses-smt/giza-pp.git
 WORKDIR /home/moses/giza-pp
@@ -65,18 +66,27 @@ RUN mkdir /home/moses/mosesdecoder/tools
 RUN cp /home/moses/giza-pp/GIZA++-v2/GIZA++ /home/moses/giza-pp/GIZA++-v2/snt2cooc.out \
    /home/moses/giza-pp/mkcls-v2/mkcls /home/moses/mosesdecoder/tools
 
-# prepare folders
+# Install IRISA normalizer
+#
+WORKDIR /home
+RUN git clone https://github.com/glecorve/irisa-text-normalizer.git
+
+# Prepare folders
+#
 RUN mkdir /home/corpus
 RUN mkdir /home/lm
 RUN mkdir /home/working
 
+# Download corpus
+#
 WORKDIR /home/corpus
-# RUN wget http://www.statmt.org/wmt13/training-parallel-nc-v8.tgz
-# RUN tar zxvf training-parallel-nc-v8.tgz
+RUN wget http://www.statmt.org/europarl/v7/fr-en.tgz
+RUN tar zxvf fr-en.tgz
 COPY europarl-v7-fr-normdenorm.tar.gz .
 RUN tar zxvf europarl-v7-fr-normdenorm.tar.gz
 
-# copy and execute our workflow
+# Copy and execute our workflow
+#
 WORKDIR /home
 COPY training.sh /home/training.sh
 RUN chmod a+x /home/training.sh

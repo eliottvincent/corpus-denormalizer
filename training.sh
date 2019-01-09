@@ -2,35 +2,71 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-09T15:21:04+01:00
+# @Last modified time: 2019-01-09T18:05:20+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
 
 #!/bin/bash
 
-echo hello
+# Variables
+#
+HOME_PATH=/home
+MOSES_PATH=/home/moses/mosesdecoder
+NORMALIZER_PATH=/home/irisa-text-normalizer
+LINES_COUNT=10000
 
-export MOSES_PATH=/home/moses/mosesdecoder
-export HOME_PATH=/home
-LINES=1000
-
+# Directories preparation
+#
 mkdir "$HOME_PATH/lm/europarl-v7-fr-normdenorm"
+
+
+
+# Prepare corpus (keep only first n lines)
+#
+echo "$(tail -$LINES_COUNT "$HOME_PATH/corpus/europarl-v7.fr-en.en")" > "$HOME_PATH/corpus/europarl-v7.fr-en.en"
+echo "$(tail -$LINES_COUNT "$HOME_PATH/corpus/europarl-v7.fr-en.fr")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr"
+
+# Clean corpus
+#
+# example: 'clean-corpus-n.perl CORPUS L1 L2 OUT MIN MAX'
+#   takes the corpus files CORPUS.L1 and CORPUS.L2...
+#   ...deletes lines longer than MAX...
+#   ...and creates the output files clean.L1 and clean.L2
+$MOSES_PATH/scripts/training/clean-corpus-n.perl \
+  "$HOME_PATH/corpus/europarl-v7.fr-en" fr en \
+  "$HOME_PATH/corpus/europarl-v7.fr-en.clean" 1 80
+
+cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm"
+
+# Normalize corpus
+#
+perl "$NORMALIZER_PATH/bin/fr/basic-tokenizer.pl" \
+  "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
+# perl bin/fr/start-generic-normalisation.pl examples/fr/europarl-v7-fr-10000.tokenized > examples/fr/europarl-v7-fr-10000.norm.step1
+# perl bin/fr/end-generic-normalisation.pl examples/fr/europarl-v7-fr-10000.norm.step1 > examples/fr/europarl-v7-fr-10000.norm.step2
+
+# Clean again
+# - remove empty lines
+sed -i '/^$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
+# - remove line w/ one character
+sed -i '/^.$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
+
 
 # the language model (LM) is used to ensure fluent output
 # so it is built with the target language
 $MOSES_PATH/bin/lmplz -o 3 \
-  < "$HOME_PATH/corpus/europarl-v7-fr-normdenorm/europarl-v7-fr-$LINES.denorm" \
-  > "$HOME_PATH/lm/europarl-v7-fr-normdenorm/europarl-v7-fr-$LINES.arpa.denorm"
+  < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm" \
+  > "$HOME_PATH/lm/europarl-v7.fr-en.fr.arpa.denorm"
 
-# binarise (for faster loading) the *.arpa.txt file using KenLM
+# binarise (for faster loading) the *.arpa.denorm file using KenLM
 $MOSES_PATH/bin/build_binary \
-  "$HOME_PATH/lm/europarl-v7-fr-normdenorm/europarl-v7-fr-$LINES.arpa.denorm" \
-  "$HOME_PATH/lm/europarl-v7-fr-normdenorm/europarl-v7-fr-$LINES.blm.denorm"
+  "$HOME_PATH/lm/europarl-v7.fr-en.fr.arpa.denorm" \
+  "$HOME_PATH/lm/europarl-v7.fr-en.fr.blm.denorm"
 
 # check the language model by querying it
 echo "reprise de la session" \
-  | $MOSES_PATH/bin/query "$HOME_PATH/lm/europarl-v7-fr-normdenorm/europarl-v7-fr-$LINES.blm.denorm"
+  | $MOSES_PATH/bin/query "$HOME_PATH/lm/europarl-v7.fr-en.fr.arpa.denorm"
 
 # training model
 # 1. Prepare data
@@ -44,12 +80,14 @@ echo "reprise de la session" \
 # 9. Create configuration file
 echo "------TRAINING------"
 nohup nice $MOSES_PATH/scripts/training/train-model.perl \
+  --verbose \
   --parallel \
-  -root-dir train \
+  --root-dir train \
   --first-step 1 \
-  -corpus "$HOME_PATH/corpus/europarl-v7-fr-normdenorm/europarl-v7-fr-$LINES" \
+  --corpus "$HOME_PATH/corpus/europarl-v7.fr-en.fr" \
   --f denorm --e norm \
-  -lm 0:3:$HOME_PATH/lm/europarl-v7-fr-normdenorm/europarl-v7-fr-${LINES}.blm.denorm:8 \
+  -lm 0:3:$HOME_PATH/lm/europarl-v7.fr-en.fr.blm.denorm:8 \
   -external-bin-dir $MOSES_PATH/tools >& "$HOME_PATH/working/training.out" &
 tail -f "$HOME_PATH/working/training.out"
+# tail -f "$HOME_PATH/working/training.out" | grep -qx "(9) create moses.ini"
 echo "------TRAINING------"

@@ -60,12 +60,25 @@ cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr" "$HOME_PATH/corpus/
 # create final cleaned file
 cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm"
 
+
 # Normalize corpus
 #
+# - apply tokenisation
 perl "$NORMALIZER_PATH/bin/fr/basic-tokenizer.pl" \
   "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
-# perl bin/fr/start-generic-normalisation.pl examples/fr/europarl-v7-fr-10000.tokenized > examples/fr/europarl-v7-fr-10000.norm.step1
-# perl bin/fr/end-generic-normalisation.pl examples/fr/europarl-v7-fr-10000.norm.step1 > examples/fr/europarl-v7-fr-10000.norm.step2
+# - apply generic normalization
+perl "$NORMALIZER_PATH/bin/fr/start-generic-normalisation.pl" \
+  "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1"
+perl "$NORMALIZER_PATH/bin/fr/end-generic-normalisation.pl" \
+  "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step2"
+# - apply specific normalization (with nlp config)
+perl "$NORMALIZER_PATH/bin/fr/specific-normalisation.pl" \
+  "$NORMALIZER_PATH/cfg/nlp.cfg" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step2" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.nlp"
+
+
+# create final cleaned file
+cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.nlp" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
+
 
 # Clean again
 # - remove empty lines

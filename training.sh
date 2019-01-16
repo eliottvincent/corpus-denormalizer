@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-16T22:48:20+01:00
+# @Last modified time: 2019-01-16T23:55:04+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -14,7 +14,7 @@
 HOME_PATH=/home
 MOSES_PATH=/home/moses/mosesdecoder
 NORMALIZER_PATH=/home/irisa-text-normalizer
-LINES_COUNT=1000
+LINES_COUNT=10000
 
 # Directories preparation
 #
@@ -116,12 +116,16 @@ echo "------TRAINING------"
 nohup nice $MOSES_PATH/scripts/training/train-model.perl \
   --verbose \
   --parallel \
-  --root-dir train \
+  --root-dir training \
   --first-step 1 \
   --corpus "$HOME_PATH/corpus/europarl-v7.fr-en.fr" \
   --f denorm --e norm \
   -lm 0:3:$HOME_PATH/lm/europarl-v7.fr-en.fr.blm.denorm:8 \
-  -external-bin-dir $MOSES_PATH/tools >& "$HOME_PATH/working/training.out" &
-tail -f "$HOME_PATH/working/training.out"
-# tail -f "$HOME_PATH/working/training.out" | grep -qx "(9) create moses.ini"
+  -external-bin-dir $MOSES_PATH/tools
+# -external-bin-dir $MOSES_PATH/tools >& "$HOME_PATH/working/training.out" &
+# tail -f "$HOME_PATH/working/training.out"
 echo "------TRAINING------"
+echo "------TRAINING FOLDER SIZE------"
+du -hs "$HOME_PATH/training"
+
+cat "$HOME_PATH/training/model/moses.ini"

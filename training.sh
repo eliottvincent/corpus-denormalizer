@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-16T23:55:04+01:00
+# @Last modified time: 2019-01-29T14:36:37+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -64,15 +64,15 @@ cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7
 # Normalize corpus
 #
 # - apply tokenisation
-perl "$NORMALIZER_PATH/bin/fr/basic-tokenizer.pl" \
+perl "$NORMALIZER_PATH/bin/fr/basic-tokenizer.pl" -v \
   "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
 # - apply generic normalization
-perl "$NORMALIZER_PATH/bin/fr/start-generic-normalisation.pl" \
+perl "$NORMALIZER_PATH/bin/fr/start-generic-normalisation.pl" -v \
   "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1"
-perl "$NORMALIZER_PATH/bin/fr/end-generic-normalisation.pl" \
+perl "$NORMALIZER_PATH/bin/fr/end-generic-normalisation.pl" -v \
   "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step2"
 # - apply specific normalization (with nlp config)
-perl "$NORMALIZER_PATH/bin/fr/specific-normalisation.pl" \
+perl "$NORMALIZER_PATH/bin/fr/specific-normalisation.pl" -v \
   "$NORMALIZER_PATH/cfg/nlp.cfg" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step2" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.nlp"
 
 

@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-29T14:36:37+01:00
+# @Last modified time: 2019-01-29T16:56:26+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -14,7 +14,7 @@
 HOME_PATH=/home
 MOSES_PATH=/home/moses/mosesdecoder
 NORMALIZER_PATH=/home/irisa-text-normalizer
-LINES_COUNT=10000
+LINES_COUNT=1000
 
 # Directories preparation
 #

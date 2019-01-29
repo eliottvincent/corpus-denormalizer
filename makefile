@@ -2,7 +2,7 @@
 # @Date:   2019-01-08T14:26:40+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-29T17:10:38+01:00
+# @Last modified time: 2019-01-29T17:16:39+01:00
 # @License: MIT
 # @Copyright: © 2019 ENSSAT. All rights reserved.
 
@@ -33,6 +33,11 @@ reload:
 	@make build
 	@make run
 	@make logs
+reload-win:
+	@nmake clean
+	@nmake build
+	@nmake run
+	@nmake logs
 
 
 prune:

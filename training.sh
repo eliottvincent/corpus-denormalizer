@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-29T16:56:26+01:00
+# @Last modified time: 2019-01-29T17:26:58+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -129,3 +129,5 @@ echo "------TRAINING FOLDER SIZE------"
 du -hs "$HOME_PATH/training"
 
 cat "$HOME_PATH/training/model/moses.ini"
+
+tail -f /dev/null

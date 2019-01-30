@@ -74,7 +74,8 @@ RUN git clone https://github.com/glecorve/irisa-text-normalizer.git
 # Install TER tool
 #
 WORKDIR /home
-RUN git clone https://github.com/jhclark/tercom.git
+RUN wget http://www.cs.umd.edu/~snover/tercom/tercom-0.7.25.tgz
+RUN tar zxvf tercom-0.7.25.tgz
 
 # Prepare folders
 #

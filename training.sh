@@ -132,4 +132,19 @@ du -hs "$HOME_PATH/training"
 
 cat "$HOME_PATH/training/model/moses.ini"
 
+
+
+echo "------POST-TRAINING------"
+echo "$(tail -10 "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test"
+echo "$(tail -10 "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm.true"
+
+nohup nice $MOSES_PATH/bin/moses \
+  --verbose \
+  -f $HOME_PATH/training/model/moses.ini \
+  < $HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test \
+  > $HOME_PATH/training/model/europarl-v7.fr-en.fr.denorm.test
+
+cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test" "$HOME_PATH/training/model/europarl-v7.fr-en.fr.norm.test"
+echo "------POST-TRAINING------"
+
 tail -f /dev/null

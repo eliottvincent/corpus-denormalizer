@@ -151,7 +151,7 @@ clean_corpus_again() {
 #
 prepare_moses() {
   {
-    # the language model (LM) is used to ensure fluent output
+    # create the language model (LM) (used to ensure fluent output)
     # so it is built with the target language
     $MOSES_PATH/bin/lmplz -o 3 \
       < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm" \
@@ -225,7 +225,10 @@ post_training() {
 
     echo '✅ post_training succeeded'
     } || {
-    echo '❌ post_training failed'
+    echo '❌ post_training failed' &&
+    keep_docker_alive
+  }
+}
     return 1
   }
 }

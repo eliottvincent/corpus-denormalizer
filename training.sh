@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-29T19:05:59+01:00
+# @Last modified time: 2019-01-30T09:12:37+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -21,6 +21,7 @@ LINES_COUNT=10000
 mkdir "$HOME_PATH/lm/europarl-v7-fr-normdenorm"
 
 
+echo "------START PRE-TRAINING------"
 
 # Prepare corpus (keep only first n lines)
 #
@@ -44,23 +45,29 @@ echo "$(tail -$LINES_COUNT "$HOME_PATH/corpus/europarl-v7.fr-en.fr")" > "$HOME_P
 cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
 # - remove empty lines
 sed -i '/^$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
+echo "- removed empty lines"
 # - remove lines w/ one character
 sed -i '/^.$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
+echo "- removed lines w/ one character"
 # - remove lines w/ more words than necessary (80 by default)
 awk '{
 if (NF < 80)
        print $0 > "'"$HOME_PATH"'/corpus/europarl-v7.fr-en.clean.awk-output.fr";
 }' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
+echo "- removed lines w/ more than 80 words"
 # - remplacer les “ - “ par “-”. Dans le cas contraire, on obtient des retours à la ligne dans le corpus normalisé (en sortie du module de Mr Lecorvé) à chaque fois que cette expression apparaît.
 sed -i "s/ - /-/g" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr"
+echo "- replaced ' - ' with '-'"
 # remove all square brackets
 sed -i "s/[][]//g" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr"
+echo "- removed '[' & ']'"
 # rename back to '.clean.fr'
 cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
 
 
 # create final cleaned file
 cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm"
+echo "- created final cleaned file"
 
 
 # Normalize corpus
@@ -88,6 +95,8 @@ sed -i '/^$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
 # - remove line w/ one character
 sed -i '/^.$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm"
 
+echo "------END PRE-TRAINING------"
+
 
 # the language model (LM) is used to ensure fluent output
 # so it is built with the target language
@@ -114,7 +123,7 @@ echo "reprise de la session" \
 # 7. Build reordering model
 # 8. Build generation models
 # 9. Create configuration file
-echo "------TRAINING------"
+echo "------START TRAINING------"
 nohup nice $MOSES_PATH/scripts/training/train-model.perl \
   --verbose \
   --parallel \
@@ -126,15 +135,14 @@ nohup nice $MOSES_PATH/scripts/training/train-model.perl \
   -external-bin-dir $MOSES_PATH/tools
 # -external-bin-dir $MOSES_PATH/tools >& "$HOME_PATH/working/training.out" &
 # tail -f "$HOME_PATH/working/training.out"
-echo "------TRAINING------"
-echo "------TRAINING FOLDER SIZE------"
 du -hs "$HOME_PATH/training"
-
 cat "$HOME_PATH/training/model/moses.ini"
+echo "------END TRAINING------"
 
 
 
-echo "------POST-TRAINING------"
+
+echo "------START POST-TRAINING------"
 echo "$(tail -10 "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test"
 echo "$(tail -10 "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm.true"
 
@@ -145,6 +153,6 @@ nohup nice $MOSES_PATH/bin/moses \
   > $HOME_PATH/training/model/europarl-v7.fr-en.fr.denorm.test
 
 cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test" "$HOME_PATH/training/model/europarl-v7.fr-en.fr.norm.test"
-echo "------POST-TRAINING------"
+echo "------END POST-TRAINING------"
 
 tail -f /dev/null

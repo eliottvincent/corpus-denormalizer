@@ -90,6 +90,9 @@ RUN tar zxvf fr-en.tgz
 COPY europarl-v7-fr-normdenorm.tar.gz .
 RUN tar zxvf europarl-v7-fr-normdenorm.tar.gz
 
+# TODO: to move up
+RUN apt-get install -y openjdk-7-jdk openjdk-7-jre
+
 # Copy and execute our workflow
 #
 WORKDIR /home

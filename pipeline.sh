@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-30T15:52:36+01:00
+# @Last modified time: 2019-01-30T16:36:58+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -238,7 +238,7 @@ launch_training() {
       --parallel \
       --root-dir training \
       --first-step 1 \
-      --corpus "$HOME_PATH/corpus/europarl-v7.fr-en.fr" \
+      --corpus "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training" \
       --f norm --e denorm \
       -lm 0:3:$HOME_PATH/lm/europarl-v7.fr-en.fr.blm.denorm:8 \
       -external-bin-dir $MOSES_PATH/tools &&
@@ -299,7 +299,7 @@ launch_pipeline() {
   echo "------END PRE-TRAINING------" &&
 
   echo "------START TRAINING------" &&
-  prepare_moses &&
+  prepare_model &&
   launch_training &&
   echo "------END TRAINING------" &&
 

@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-30T15:20:34+01:00
+# @Last modified time: 2019-01-30T15:52:36+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -14,7 +14,7 @@
 HOME_PATH=/home
 MOSES_PATH=/home/moses/mosesdecoder
 NORMALIZER_PATH=/home/irisa-text-normalizer
-LINES_COUNT=1000
+LINES_COUNT=10000
 
 
 prepare_corpus() {
@@ -74,12 +74,12 @@ clean_corpus_homemade() {
     if (NF < 80)
            print $0 > "'"$HOME_PATH"'/corpus/europarl-v7.fr-en.wip.awk.fr";
     }' "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.wip.awk.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     # rename back to '.wip.fr' (we need to use a tmp output file with awk)
+    cp "$HOME_PATH/corpus/europarl-v7.fr-en.wip.awk.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     echo "- removed lines w/ more than 80 words" &&
     wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
 
-    # - remplacer les “ - “ par “-”. Dans le cas contraire, on obtient des retours à la ligne dans le corpus normalisé (en sortie du module de Mr Lecorvé) à chaque fois que cette expression apparaît.
+    # - replace “ - “ with “-”. Dans le cas contraire, on obtient des retours à la ligne dans le corpus normalisé (en sortie du module de Mr Lecorvé) à chaque fois que cette expression apparaît.
     sed -i "s/ - /-/g" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     echo "- replaced ' - ' with '-'" &&
     wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
@@ -90,8 +90,10 @@ clean_corpus_homemade() {
     wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
 
 
-    # create final cleaned files
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+    # create final files
+    # - cleaned file (that we're going to normalize)
+    mv "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+    # - denorm file (that will remain untouched)
     cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm" &&
     echo "- created final cleaned files" &&
 
@@ -109,10 +111,10 @@ normalize_corpus() {
   {
     # - apply tokenisation
     perl "$NORMALIZER_PATH/bin/fr/basic-tokenizer.pl" -v \
-      "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" &&
+      "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.token" &&
     # - apply generic normalization
     perl "$NORMALIZER_PATH/bin/fr/start-generic-normalisation.pl" -v \
-      "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1" &&
+      "$HOME_PATH/corpus/europarl-v7.fr-en.fr.token" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1" &&
     perl "$NORMALIZER_PATH/bin/fr/end-generic-normalisation.pl" -v \
       "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step1" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.step2" &&
     # - apply specific normalization (with nlp config)
@@ -121,7 +123,7 @@ normalize_corpus() {
 
 
     # create final cleaned file
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.nlp" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" &&
+    mv "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.nlp" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" &&
 
     echo '✅ normalize_corpus succeeded'
     } || {
@@ -143,6 +145,35 @@ clean_corpus_again() {
     echo '✅ clean_corpus_again succeeded'
     } || {
     echo '❌ clean_corpus_again failed'
+    return 1
+  }
+}
+
+
+# Split cleaned corpus
+#
+split_corpus() {
+  {
+    # TMP
+    cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" &&
+
+    # split normalized corpus into training (80%) and testing (20%) sets
+    {
+      head -n$(( $(wc -l < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm") * 2 / 10)) > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.norm"; cat > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.norm";
+    } <"$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.norm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.norm" &&
+
+    # split training corpus into training (80%) and validation (20%) sets
+    {
+      head -n$(( $(wc -l < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.norm") * 2 / 10)) > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.norm"; cat > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.norm";
+    } <"$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.norm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.norm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.norm" &&
+
+    echo '✅ split_corpus succeeded'
+    } || {
+    echo '❌ split_corpus failed'
     return 1
   }
 }
@@ -248,6 +279,7 @@ launch_pipeline() {
   clean_corpus_homemade &&
   normalize_corpus &&
   clean_corpus_again &&
+  split_corpus &&
   echo "------END PRE-TRAINING------" &&
 
   echo "------START TRAINING------" &&

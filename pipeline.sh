@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-30T16:36:58+01:00
+# @Last modified time: 2019-01-30T18:02:10+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -14,7 +14,8 @@
 HOME_PATH=/home
 MOSES_PATH=/home/moses/mosesdecoder
 NORMALIZER_PATH=/home/irisa-text-normalizer
-LINES_COUNT=10000
+TERCOM_PATH=/home/tercom-0.7.25
+LINES_COUNT=1000
 
 
 prepare_corpus() {
@@ -259,24 +260,37 @@ launch_training() {
 #
 post_training() {
   {
-    echo "$(tail -10 "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test" &&
-    echo "$(tail -10 "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm.true" &&
-
-    nohup nice $MOSES_PATH/bin/moses \
+    # generate hypothesis file
+    $MOSES_PATH/bin/moses \
       --verbose \
       -f $HOME_PATH/training/model/moses.ini \
-      < $HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test \
-      > $HOME_PATH/training/model/europarl-v7.fr-en.fr.denorm.test &&
+      < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.norm" \
+      > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm" &&
 
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm.test" "$HOME_PATH/training/model/europarl-v7.fr-en.fr.norm.test" &&
+    # tmp fix to append the id at each line
+    awk '{print $s " (AFA20040101.0510-" NR ")"}' \
+      "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm" \
+      > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.awk.denorm"
+    mv "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.awk.denorm" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm"
+    awk '{print $s " (AFA20040101.0510-" NR ")"}' \
+      "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm" \
+      > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.awk.denorm"
+    mv "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.awk.denorm" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm"
+
+    # sed -e 's/$/ (AFA20040101.0510-8)/' -i "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm"
+    # sed -e 's/$/ (AFA20040101.0510-8)/' -i "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm"
+
+    # compute ter (compare between generated hypothesis and true denorm corpus)
+    java -jar $TERCOM_PATH/tercom.7.25.jar \
+      -s \
+      -r "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm" \
+      -h "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm" \
+      -n "ter-result" &&
 
     echo '✅ post_training succeeded'
     } || {
     echo '❌ post_training failed' &&
     keep_docker_alive
-  }
-}
-    return 1
   }
 }
 

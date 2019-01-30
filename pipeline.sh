@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-30T13:40:49+01:00
+# @Last modified time: 2019-01-30T15:20:34+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -55,32 +55,45 @@ prepare_corpus() {
 clean_corpus_homemade() {
   {
     # - create working copy
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+    cp "$HOME_PATH/corpus/europarl-v7.fr-en.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+
+
     # - remove empty lines
-    sed -i '/^$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+    sed -i '/^$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     echo "- removed empty lines" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+
     # - remove lines w/ one character
-    sed -i '/^.$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+    sed -i '/^.$/d' "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     echo "- removed lines w/ one character" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+
     # - remove lines w/ more words than necessary (80 by default)
     awk '{
     if (NF < 80)
-           print $0 > "'"$HOME_PATH"'/corpus/europarl-v7.fr-en.clean.awk-output.fr";
-    }' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+           print $0 > "'"$HOME_PATH"'/corpus/europarl-v7.fr-en.wip.awk.fr";
+    }' "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+    cp "$HOME_PATH/corpus/europarl-v7.fr-en.wip.awk.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+    # rename back to '.wip.fr' (we need to use a tmp output file with awk)
     echo "- removed lines w/ more than 80 words" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+
     # - remplacer les “ - “ par “-”. Dans le cas contraire, on obtient des retours à la ligne dans le corpus normalisé (en sortie du module de Mr Lecorvé) à chaque fois que cette expression apparaît.
-    sed -i "s/ - /-/g" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr" &&
+    sed -i "s/ - /-/g" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     echo "- replaced ' - ' with '-'" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
+
     # remove all square brackets
-    sed -i "s/[][]//g" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr" &&
+    sed -i "s/[][]//g" "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
     echo "- removed '[' & ']'" &&
-    # rename back to '.clean.fr'
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" &&
 
 
-    # create final cleaned file
+    # create final cleaned files
+    cp "$HOME_PATH/corpus/europarl-v7.fr-en.wip.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" &&
     cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm" &&
-    echo "- created final cleaned file" &&
+    echo "- created final cleaned files" &&
 
     echo '✅ clean_corpus_homemade succeeded'
     } || {

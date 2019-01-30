@@ -93,9 +93,9 @@ RUN tar zxvf europarl-v7-fr-normdenorm.tar.gz
 # Copy and execute our workflow
 #
 WORKDIR /home
-COPY training.sh /home/training.sh
-RUN chmod a+x /home/training.sh
-ENTRYPOINT ["/bin/bash", "-c", "/home/training.sh"]
+COPY pipeline.sh /home/pipeline.sh
+RUN chmod a+x /home/pipeline.sh
+ENTRYPOINT ["/bin/bash", "-c", "/home/pipeline.sh"]
 
 # OLD method to keep running the container
 # CMD tail -f /dev/null

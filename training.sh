@@ -2,7 +2,7 @@
 # @Date:   2019-01-09T10:55:22+01:00
 # @Email:  evincent@enssat.fr
 # @Last modified by:   eliottvincent
-# @Last modified time: 2019-01-29T18:01:24+01:00
+# @Last modified time: 2019-01-29T19:05:59+01:00
 # @License: MIT
 # @Copyright: © 2018 Productmates. All rights reserved.
 
@@ -14,7 +14,7 @@
 HOME_PATH=/home
 MOSES_PATH=/home/moses/mosesdecoder
 NORMALIZER_PATH=/home/irisa-text-normalizer
-LINES_COUNT=1000
+LINES_COUNT=10000
 
 # Directories preparation
 #
@@ -53,6 +53,8 @@ if (NF < 80)
 }' "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
 # - remplacer les “ - “ par “-”. Dans le cas contraire, on obtient des retours à la ligne dans le corpus normalisé (en sortie du module de Mr Lecorvé) à chaque fois que cette expression apparaît.
 sed -i "s/ - /-/g" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr"
+# remove all square brackets
+sed -i "s/[][]//g" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr"
 # rename back to '.clean.fr'
 cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.awk-output.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr"
 

@@ -193,14 +193,15 @@ split_corpus() {
   }
 }
 
-# Prepare moses
+# Prepare model
 #
-prepare_moses() {
+prepare_model() {
   {
     # create the language model (LM) (used to ensure fluent output)
     # so it is built with the target language
+    # in our case we create a basic 3-gram model, from the denormalized training set
     $MOSES_PATH/bin/lmplz -o 3 \
-      < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm" \
+      < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.denorm" \
       > "$HOME_PATH/lm/europarl-v7.fr-en.fr.arpa.denorm" &&
 
     # binarise (for faster loading) the *.arpa.denorm file using KenLM
@@ -212,9 +213,9 @@ prepare_moses() {
     echo "reprise de la session" \
       | $MOSES_PATH/bin/query "$HOME_PATH/lm/europarl-v7.fr-en.fr.arpa.denorm" &&
 
-    echo '✅ prepare_moses succeeded'
+    echo '✅ prepare_model succeeded'
     } || {
-    echo '❌ prepare_moses failed'
+    echo '❌ prepare_model failed'
     return 1
   }
 }

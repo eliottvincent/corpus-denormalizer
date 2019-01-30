@@ -154,9 +154,8 @@ clean_corpus_again() {
 #
 split_corpus() {
   {
-    # TMP
-    cp "$HOME_PATH/corpus/europarl-v7.fr-en.clean.fr" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm" &&
-
+    # NORM
+    #
     # split normalized corpus into training (80%) and testing (20%) sets
     {
       head -n$(( $(wc -l < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.norm") * 2 / 10)) > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.norm"; cat > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.norm";
@@ -170,6 +169,22 @@ split_corpus() {
     } <"$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.norm" &&
     wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.norm" &&
     wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.norm" &&
+
+    # DENORM (don't know if it's useful to split the denorm corpus)
+    #
+    # split denormalized corpus into training (80%) and testing (20%) sets
+    {
+      head -n$(( $(wc -l < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm") * 2 / 10)) > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm"; cat > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.denorm";
+    } <"$HOME_PATH/corpus/europarl-v7.fr-en.fr.denorm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.denorm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm" &&
+
+    # split training corpus into training (80%) and validation (20%) sets
+    {
+      head -n$(( $(wc -l < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.denorm") * 2 / 10)) > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.denorm"; cat > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.denorm";
+    } <"$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.tmp.denorm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training.denorm" &&
+    wc -l "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.denorm" &&
 
     echo '✅ split_corpus succeeded'
     } || {

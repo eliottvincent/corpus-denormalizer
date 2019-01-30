@@ -71,6 +71,11 @@ RUN cp /home/moses/giza-pp/GIZA++-v2/GIZA++ /home/moses/giza-pp/GIZA++-v2/snt2co
 WORKDIR /home
 RUN git clone https://github.com/glecorve/irisa-text-normalizer.git
 
+# Install TER tool
+#
+WORKDIR /home
+RUN git clone https://github.com/jhclark/tercom.git
+
 # Prepare folders
 #
 RUN mkdir /home/corpus

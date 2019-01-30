@@ -20,8 +20,7 @@ LINES_COUNT=1000
 prepare_corpus() {
   {
     # Keep only first n lines
-    echo "$(tail -$LINES_COUNT "$HOME_PATH/corpus/europarl-v7.fr-en.en")" > "$HOME_PATH/corpus/europarl-v7.fr-en.en" &&
-    echo "$(tail -$LINES_COUNT "$HOME_PATH/corpus/europarl-v7.fr-en.fr")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr" &&
+    echo "$(head -$LINES_COUNT "$HOME_PATH/corpus/europarl-v7.fr-en.fr")" > "$HOME_PATH/corpus/europarl-v7.fr-en.fr" &&
 
     echo '✅ prepare_corpus succeeded'
     } || {

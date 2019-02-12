@@ -6,11 +6,11 @@
 # @License: MIT
 # @Copyright: © 2019 ENSSAT. All rights reserved.
 
-# HOST_HOME_PATH=C:\Users\bawi-\Desktop\Projet_IA\corpus-denormalizer-master\\ #
-HOST_HOME_PATH=/Users/eliottvincent/Desktop/
+HOST_HOME_PATH=C:\Users\bawi-\Desktop\Projet_IA\corpus-denormalizer-master\\
+# HOST_HOME_PATH=/Users/eliottvincent/Desktop/
 DOCKER_HOME_PATH=/home
-CPUS="1"
-MEMORY="6096m"
+CPUS="7"
+MEMORY="12288m"
 
 build:
 	@docker build \
@@ -29,6 +29,8 @@ bash:
 	@docker exec -it moses_1 /bin/bash
 logs:
 	@docker logs moses_1 -f
+copy-logs:
+	@docker logs moses_1 > moses.log 2>&1
 clean:
 	@docker stop moses_1
 	@docker rm moses_1

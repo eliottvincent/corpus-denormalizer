@@ -15,7 +15,7 @@ HOME_PATH=/home
 MOSES_PATH=/home/moses/mosesdecoder
 NORMALIZER_PATH=/home/irisa-text-normalizer
 TERCOM_PATH=/home/tercom-0.7.25
-LINES_COUNT=1000
+LINES_COUNT=100000
 
 
 prepare_corpus() {
@@ -234,15 +234,17 @@ launch_training() {
     # 7. Build reordering model
     # 8. Build generation models
     # 9. Create configuration file
+    # Reference: manual.pdf, line 350
     $MOSES_PATH/scripts/training/train-model.perl \
       --verbose \
       --parallel \
+      --cores 6 \
       --root-dir training \
       --first-step 1 \
       --corpus "$HOME_PATH/corpus/europarl-v7.fr-en.fr.training" \
       --f norm --e denorm \
-      -lm 0:3:$HOME_PATH/lm/europarl-v7.fr-en.fr.blm.denorm:8 \
-      -external-bin-dir $MOSES_PATH/tools &&
+      --lm 0:3:$HOME_PATH/lm/europarl-v7.fr-en.fr.blm.denorm:8 \
+      --external-bin-dir $MOSES_PATH/tools &&
     # -external-bin-dir $MOSES_PATH/tools >& "$HOME_PATH/working/training.out" &
     # tail -f "$HOME_PATH/working/training.out"
     du -hs "$HOME_PATH/training" &&
@@ -256,18 +258,65 @@ launch_training() {
 }
 
 
+# Launch moses tuning
+#
+launch_tuning() {
+  {
+    # Usage:
+    # mert-moses.pl <foreign> <english> <decoder-executable> <decoder-config>
+    $MOSES_PATH/scripts/training/mert-moses.pl \
+      "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.norm" \
+      "$HOME_PATH/corpus/europarl-v7.fr-en.fr.validation.denorm" \
+      "$MOSES_PATH/bin/moses" \
+      "$HOME_PATH/training/model/moses.ini" \
+      --mertdir "$MOSES_PATH/bin/" \
+      --mertargs="--sctype TER" \
+      --decoder-flags="-threads 6" \
+      --verbose &&
+    du -hs "$HOME_PATH/training" &&
+    cat "$HOME_PATH/training/model/moses.ini" &&
+
+    echo '✅ launch_tuning succeeded'
+    } || {
+    echo '❌ launch_tuning failed'
+    return 1
+  }
+}
+
+
 # Post training (wip)
 #
 post_training() {
   {
+    # binarise the models
+    # it should reduce memory usage by a factor of 10
+    # (for faster loading and to avoid memory error)
+    mkdir "$HOME_PATH/training/binarised-model" &&
+    $MOSES_PATH/bin/processPhraseTableMin \
+      -in "$HOME_PATH/training/model/phrase-table.gz" \
+      -out "$HOME_PATH/training/binarised-model/phrase-table" \
+      -nscores 4 \
+      -threads all \
+      -T . &&
+    # $MOSES_PATH/bin/processLexicalTableMin \
+      #   -in "$HOME_PATH/training/model/reordering-table.wbe-msd-bidirectional-fe.gz" \
+      #   -out "$HOME_PATH/training/binarised-model/reordering-table" \
+      #   -threads all &&
+
+    # copy model.ini (the one from mert) and edit it
+    cp "$HOME_PATH/mert-work/moses.ini" "$HOME_PATH/training/binarised-model/moses.ini" &&
+    sed -i "s/PhraseDictionaryMemory/PhraseDictionaryCompact/g" "$HOME_PATH/training/binarised-model/moses.ini" &&
+    sed -i 's/path=\/home\/training\/model\/phrase-table.gz/path=\/home\/training\/binarised-model\/phrase-table.minphr/g' "$HOME_PATH/training/binarised-model/moses.ini" &&
+    # sed -i 's/path=\/home/\training\/model\/reordering-table.wbe-msd-bidirectional-fe.gz/path=\/home\/training\/binarised-model\/reordering-table/g' "$HOME_PATH/training/binarised-model/moses.ini" &&
+
     # generate hypothesis file
     $MOSES_PATH/bin/moses \
       --verbose \
-      -f $HOME_PATH/training/model/moses.ini \
+      -f "$HOME_PATH/training/binarised-model/moses.ini" \
       < "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.norm" \
       > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm" &&
 
-    # tmp fix to append the id at each line
+    # generate and append an id at each line
     awk '{print $s " (AFA20040101.0510-" NR ")"}' \
       "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm" \
       > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.awk.denorm"
@@ -276,9 +325,6 @@ post_training() {
       "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm" \
       > "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.awk.denorm"
     mv "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.awk.denorm" "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm"
-
-    # sed -e 's/$/ (AFA20040101.0510-8)/' -i "$HOME_PATH/corpus/europarl-v7.fr-en.fr.testing.denorm"
-    # sed -e 's/$/ (AFA20040101.0510-8)/' -i "$HOME_PATH/corpus/europarl-v7.fr-en.fr.hypothesis.denorm"
 
     # compute ter (compare between generated hypothesis and true denorm corpus)
     java -jar $TERCOM_PATH/tercom.7.25.jar \
@@ -315,6 +361,7 @@ launch_pipeline() {
   echo "------START TRAINING------" &&
   prepare_model &&
   launch_training &&
+  launch_tuning &&
   echo "------END TRAINING------" &&
 
   echo "------START POST-TRAINING------" &&
